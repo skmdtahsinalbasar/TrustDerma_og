@@ -1,4 +1,4 @@
-import os, io
+import os, io, urllib.request
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -20,8 +20,52 @@ NAMES = {
  "df":"Dermatofibroma","mel":"Melanoma",
  "nv":"Melanocytic Nevus","vasc":"Vascular Lesion"
 }
-MODEL_PATH = os.getenv("TRUSTDERMA_MODEL","models/best_baseline.pth")
+DEFAULT_MODEL_PATH = "models/best_baseline.pth"
+MODEL_SOURCE = os.getenv("TRUSTDERMA_MODEL", DEFAULT_MODEL_PATH)
 THRESHOLD = 0.80
+
+def ensure_model():
+    target = DEFAULT_MODEL_PATH
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    if os.path.exists(target) and os.path.getsize(target) > 1_000_000:
+        return target
+    src = MODEL_SOURCE
+    if isinstance(src, str) and (src.startswith("http://") or src.startswith("https://")):
+        st.info("Downloading model (232 MB, first run only)...")
+        bar = st.progress(0.0)
+        status = st.empty()
+        try:
+            req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0"})
+            resp = urllib.request.urlopen(req)
+            total = int(resp.headers.get("Content-Length", "243269632"))
+            got = 0
+            with open(target, "wb") as f:
+                while True:
+                    chunk = resp.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    got += len(chunk)
+                    pct = got / total if total > 0 else 1.0
+                    pct = pct if pct <= 1.0 else 1.0
+                    bar.progress(pct)
+                    status.caption(f"{got/1024/1024:.1f} / {total/1024/1024:.1f} MB")
+            bar.progress(1.0)
+            status.caption("Download complete.")
+            return target
+        except Exception as e:
+            raise RuntimeError(f"Failed to download model from {src}: {e}")
+    if os.path.exists(src):
+        if src != target:
+            try:
+                import shutil
+                shutil.copy2(src, target)
+            except Exception:
+                return src
+        return target
+    return target
+
+MODEL_PATH = ensure_model()
 
 transform = A.Compose([A.Resize(384,384), A.Normalize(), ToTensorV2()])
 
@@ -30,7 +74,7 @@ def load_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = timm.create_model("tf_efficientnetv2_s", pretrained=False, num_classes=7)
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Missing model: {MODEL_PATH}")
+        raise FileNotFoundError(f"Missing model: {MODEL_PATH}. Put best_baseline.pth in models/ or set TRUSTDERMA_MODEL env var.")
     ckpt = torch.load(MODEL_PATH, map_location=device)
     model.load_state_dict(ckpt.get("model_state_dict", ckpt))
     model.to(device).eval()
