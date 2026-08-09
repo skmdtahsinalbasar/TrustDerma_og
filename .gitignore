@@ -52,3 +52,4 @@ logs/
 
 # Jupyter
 .ipynb_checkpoints/
+models/*.pth
