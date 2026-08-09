@@ -1,0 +1,10 @@
+[browser]
+gatherUsageStats = false
+
+[server]
+maxUploadSize = 200
+enableCORS = false
+enableXsrfProtection = false
+
+[logger]
+level = "warning"
