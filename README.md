@@ -112,18 +112,149 @@ This is fixed in the current version of `app.py`. If you see it, ensure `cv2.res
 
 ---
 
-##  Production Deployment
+##  Deployment Guide
 
-### Deploy to Streamlit Community Cloud
-1. Push this repo to GitHub (already done!)
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect your GitHub account and select this repo
-4. Set **Main file path:** `app.py`
-5. **Important:** Add your `best_baseline.pth` via Secrets or mount a storage bucket (the model file is NOT in this repo due to GitHub file size limits)
+###  Quick Platform Comparison
+
+| Platform | Cost | Works with Streamlit? | Difficulty | Best For |
+|---|---|---|---|---|
+| **Streamlit Community Cloud** | **FREE** | ✅ **Native & Official** | ⭐ Very Easy | **✅ RECOMMENDED** |
+| **Render.com** | Free tier (sleeps) + $7/mo always-on | ✅ Perfect | ⭐ Easy | Production + Free tier |
+| **Railway.app** | $5+/month (trial credits) | ✅ Perfect | ⭐ Easy | Production, fast deploys |
+| **Heroku** | $7+/month | ✅ Works | ⭐ Easy | Legacy production |
+| **Vercel** | Free tier | ⚠️ **Not Recommended** (WebSocket issues, no persistence) | ⭐⭐⭐ Hard | Next.js apps ONLY |
+
+---
+
+###  1. Streamlit Community Cloud (FREE, EASIEST, RECOMMENDED)
+
+Built specifically for Streamlit apps. Zero config, automatic GitHub deploys.
+
+1. Go to **https://share.streamlit.io**
+2. Sign in with GitHub → **New app**
+3. Configure:
+   - **Repository:** `skmdtahsinalbasar/TrustDerma`
+   - **Branch:** `main`
+   - **Main file path:** `app.py`
+4. Click **Advanced settings** → **Python version:** `3.11`
+5. **For your model file `best_baseline.pth`:**
+   - Option A: Add via **Secrets → TOML format:** paste download script that fetches the model at runtime
+   - Option B: Use `TRUSTDERMA_MODEL` env var pointing to a public direct download link (Hugging Face Hub, Dropbox, GDrive direct)
 6. Click **Deploy**
 
-### Alternative: Hugging Face Spaces / Render / Railway
-Same pattern  containerize with Docker or use Python buildpacks, and ensure the model file is accessible at runtime.
+Your live URL: `https://skmdtahsinalbasar-trustderma.streamlit.app`
+
+---
+
+###  2. Render.com (Great Free Tier)
+
+Free tier available (sleeps after inactivity), paid starts at $7/mo always-on.
+
+`render.yaml` file is **already included** for 1-click deploy!
+
+#### Option A: 1-Click using render.yaml
+1. Go to **https://dashboard.render.com/blueprints**
+2. **New from YAML** → paste your repo URL
+3. Review & click **Create Resources**
+
+#### Option B: Manual Web Service
+1. Go to **https://render.com** → **New + → Web Service**
+2. Connect GitHub → pick `TrustDerma` repo
+3. Configure:
+   - **Name:** `trustderma`
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install --upgrade pip && pip install -r requirements.txt`
+   - **Start Command:**
+     ```bash
+     sh setup.sh && streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false
+     ```
+4. Under **Environment Variables** (optional):
+   - `TRUSTDERMA_MODEL` = public download URL of your `best_baseline.pth`
+   - Or copy/paste the file into the project via Render shell after deploy
+5. Click **Create Web Service**
+
+---
+
+###  3. Railway.app (Fast, $5/mo, has trial credits)
+
+`railway.json` config file is **already included**!
+
+1. Go to **https://railway.app** → Sign in with GitHub
+2. **New Project** → **Deploy from GitHub repo**
+3. Select `TrustDerma` repo → **Deploy Now**
+4. Railway auto-reads `railway.json` and configures everything
+5. Add env var (if needed):
+   - Go to **Variables** tab → Add `TRUSTDERMA_MODEL`
+6. Generate a public domain: **Settings → Networking → Generate Domain**
+
+---
+
+###  4. Heroku ($7+/month)
+
+Files `Procfile` + `setup.sh` + `runtime.txt` already included!
+
+```bash
+# Install Heroku CLI
+curl https://cli-assets.heroku.com/install.sh | sh
+
+# Login & create app
+heroku login
+heroku create trustderma-app
+
+# Deploy
+git push heroku main
+
+# Open your app
+heroku open
+```
+
+To add the model file, set env var:
+```bash
+heroku config:set TRUSTDERMA_MODEL="https://your-storage.com/best_baseline.pth"
+```
+
+---
+
+###  5. Vercel (⚠️ NOT Recommended for Streamlit)
+
+> **Important Caveat:** Vercel is built for **Next.js / static / serverless (request-response)** workloads.
+> Streamlit uses **persistent WebSocket connections + in-memory state**, which Vercel Serverless Functions don't handle well.
+> You will see random connection drops, state loss, and upload failures.
+> **USE Streamlit Community Cloud, Render, or Railway instead for reliable operation.**
+
+#### If you still want to try Vercel:
+`vercel.json` config file is already included.
+
+1. Install Vercel CLI:
+   ```bash
+   npm i -g vercel
+   ```
+2. Deploy from project root:
+   ```bash
+   cd TrustDerma_Web
+   vercel
+   ```
+3. Follow prompts → connect project
+4. In Vercel dashboard → **Project Settings → Functions**:
+   - Memory: **1024 MB** (minimum for PyTorch)
+   - Max Duration: **60s**
+5. Add env var `TRUSTDERMA_MODEL` pointing to a hosted model URL
+6. **Expect WebSocket errors and intermittent issues** → strongly consider one of the recommended platforms above.
+
+---
+
+###  Hosting your model file (best practices)
+
+Since `best_baseline.pth` is too large for raw GitHub uploads, host it publicly on:
+- **Hugging Face Hub** (free, best for ML models) → create a model repo, upload `.pth`, get direct URL
+- **Google Drive** → get a **direct download link** (via `https://drive.google.com/uc?export=download&id=FILE_ID`)
+- **Dropbox** → create shared link, replace `www.dropbox.com` with `dl.dropboxusercontent.com`
+- **GitHub Releases** → upload as release asset (handles large files)
+
+Then set env var on your deployment platform:
+```
+TRUSTDERMA_MODEL=https://huggingface.co/your-username/your-repo/resolve/main/best_baseline.pth
+```
 
 ---
 
