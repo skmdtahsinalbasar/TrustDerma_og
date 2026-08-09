@@ -1,57 +1,11 @@
 # TrustDerma Web App
 
-> AI-assisted skin lesion analysis with confidence scoring, uncertainty estimation, trust thresholds, and Grad-CAM++ explainability.
-
-##  Features
--  **EfficientNetV2-S** backbone trained on 7 dermatology classes
--  384x384 image preprocessing pipeline
--  **Trust Score** (locked to model confidence) with 0.80 threshold
--  Predictive entropy (uncertainty) measurement
--  Top-3 predictions with probability breakdown
--  **Grad-CAM++** visual explainability heatmaps
--  Image quality/sharpness scoring
--  Clinical-style downloadable report (TXT)
-
-##  Classes
-| Code | Full Name |
-|------|-----------|
-| `akiec` | Actinic Keratoses / Intraepithelial Carcinoma |
-| `bcc` | Basal Cell Carcinoma |
-| `bkl` | Benign Keratosis |
-| `df` | Dermatofibroma |
-| `mel` | Melanoma |
-| `nv` | Melanocytic Nevus |
-| `vasc` | Vascular Lesion |
-
----
-
-##  Quick Start (Local Run)
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/skmdtahsinalbasar/TrustDerma.git
-cd TrustDerma
-```
-
-### 2. Add Your Trained Model
-Place your `best_baseline.pth` file inside the `models/` folder:
-```
-TrustDerma/
- models/
-     best_baseline.pth    <- PUT YOUR MODEL HERE
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-**Python Version:** 3.10+ recommended (tested on 3.13)
-
-### 4. Run the App
-```bash
-streamlit run app.py
-```
+## Run
+1. Put your existing `best_baseline.pth` in `models/`.
+2. Install:
+`pip install -r requirements.txt`
+3. Start:
+`streamlit run app.py`
 
 The app will open automatically at: **http://localhost:8501**
 
@@ -59,11 +13,18 @@ The app will open automatically at: **http://localhost:8501**
 
 ##  Project Structure
 ```
-TrustDerma/
+TrustDerma-2/
 ├── app.py                       # Main Streamlit application
 ├── requirements.txt             # Python dependencies
 ├── README.md                    # This file
 ├── .gitignore                   # Ignore patterns
+├── vercel.json                  # Vercel deploy config (⚠️ not recommended)
+├── Procfile                     # Heroku/Railway web process
+├── setup.sh                     # Streamlit runtime config bootstrapper
+├── runtime.txt                  # Python 3.11.4 pin (Heroku)
+├── railway.json                 # Railway.app auto-config
+├── render.yaml                  # Render.com 1-click Blueprint
+├── packages.txt                 # Streamlit Cloud system libs
 ├── .streamlit/
 │   └── config.toml             # Streamlit configuration
 └── models/
@@ -133,7 +94,7 @@ Built specifically for Streamlit apps. Zero config, automatic GitHub deploys.
 1. Go to **https://share.streamlit.io**
 2. Sign in with GitHub → **New app**
 3. Configure:
-   - **Repository:** `skmdtahsinalbasar/TrustDerma`
+   - **Repository:** `skmdtahsinalbasar/TrustDerma-2`
    - **Branch:** `main`
    - **Main file path:** `app.py`
 4. Click **Advanced settings** → **Python version:** `3.11`
@@ -142,7 +103,7 @@ Built specifically for Streamlit apps. Zero config, automatic GitHub deploys.
    - Option B: Use `TRUSTDERMA_MODEL` env var pointing to a public direct download link (Hugging Face Hub, Dropbox, GDrive direct)
 6. Click **Deploy**
 
-Your live URL: `https://skmdtahsinalbasar-trustderma.streamlit.app`
+Your live URL: `https://skmdtahsinalbasar-trustderma-2.streamlit.app`
 
 ---
 
@@ -159,7 +120,7 @@ Free tier available (sleeps after inactivity), paid starts at $7/mo always-on.
 
 #### Option B: Manual Web Service
 1. Go to **https://render.com** → **New + → Web Service**
-2. Connect GitHub → pick `TrustDerma` repo
+2. Connect GitHub → pick `TrustDerma-2` repo
 3. Configure:
    - **Name:** `trustderma`
    - **Environment:** `Python 3`
@@ -181,7 +142,7 @@ Free tier available (sleeps after inactivity), paid starts at $7/mo always-on.
 
 1. Go to **https://railway.app** → Sign in with GitHub
 2. **New Project** → **Deploy from GitHub repo**
-3. Select `TrustDerma` repo → **Deploy Now**
+3. Select `TrustDerma-2` repo → **Deploy Now**
 4. Railway auto-reads `railway.json` and configures everything
 5. Add env var (if needed):
    - Go to **Variables** tab → Add `TRUSTDERMA_MODEL`
