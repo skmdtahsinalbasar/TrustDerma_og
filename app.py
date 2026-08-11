@@ -577,6 +577,10 @@ with st.sidebar:
     )
 
     st.write(
+        "**Model Status:** 🟢 Online (Ready)"
+    )
+
+    st.write(
         "**Input:** 384 × 384"
     )
 
@@ -586,6 +590,10 @@ with st.sidebar:
 
     st.write(
         f"**Validated Trust Threshold:** {THRESHOLD:.2f}"
+    )
+
+    st.write(
+        "**Model Source:** [🔗 Hugging Face Hub](https://huggingface.co/tahsinalbsr/TrustDerma-best-model)"
     )
 
     st.divider()
